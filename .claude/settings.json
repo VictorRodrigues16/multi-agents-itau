@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx prettier:*)",
+      "Bash(node:*)",
+      "Bash(~/dsg/agent-itau/scripts/emit-event.sh:*)",
+      "Bash(~/dsg/agent-itau/scripts/sortear-revisores.sh:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(sudo:*)"
+    ]
+  },
+  "env": {
+    "AGENT_ITAU_ROOT": "$HOME/dsg/agent-itau",
+    "AGENT_ITAU_REPORTS": "$HOME/dsg/agent-itau/relatorios",
+    "AGENT_ITAU_EVENTS": "$HOME/.claude/agent-events-itau.jsonl"
+  }
+}

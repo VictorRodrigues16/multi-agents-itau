@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Itau">
+  <path d="M10 4 C4 4 4 10 4 10 L4 54 C4 60 10 60 10 60 L54 60 C60 60 60 54 60 54 L60 10 C60 4 54 4 54 4 Z" fill="#EC7000"/>
+  <g fill="#FFFFFF">
+    <rect x="16" y="26" width="5" height="22" rx="1"/>
+    <circle cx="18.5" cy="20" r="3"/>
+    <path d="M24 26 L24 48 L29 48 L29 32 L35 32 L35 48 L40 48 L40 32 C40 28 37 26 33 26 Z"/>
+    <path d="M43 26 L43 42 C43 46 45 48 49 48 C53 48 55 46 55 42 L55 26 L50 26 L50 41 C50 43 49 44 49 44 C48 44 47 43 47 41 L47 26 Z"/>
+    <path d="M43 19 L46 22 L49 19 L46 16 Z"/>
+  </g>
+</svg>

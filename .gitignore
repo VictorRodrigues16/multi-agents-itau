@@ -1,0 +1,73 @@
+# =====================================================
+# agent-itau .gitignore
+#
+# Filosofia: TUDO de estado/config persistente está em .md
+# (versionado). JSONs voláteis e binários ficam fora.
+# =====================================================
+
+# --- Ambiente local ---
+.env
+.env.local
+.env.*.local
+.claude/integracoes/*.local.md
+.claude/settings.local.json
+
+# --- Dependências ---
+node_modules/
+.pnp
+.pnp.js
+
+# --- Build / cache ---
+.next/
+out/
+build/
+dist/
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Editor / OS ---
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Worktrees temporários ---
+.claude/worktrees/
+
+# --- Artefatos voláteis de execução ---
+# JSONL de eventos é local (não cruza máquinas)
+agent-events-itau.jsonl
+
+# Backups automáticos dos agentes
+.workflow/agentes-backup/historico/
+
+# Artefatos por tarefa, regerados a cada execução do pipeline.
+# Contêm caminhos absolutos da máquina local — NÃO devem ir pro repositório.
+# (mantemos só o relatorio-dados-exemplo.json, que é template de demo)
+.workflow/tasks/*/prompt-execucao.txt
+.workflow/tasks/*/relatorio-dados.json
+.workflow/tasks/*/testes/
+
+# --- Estado local de projetos ---
+# Cada usuário registra os próprios projetos pela aba Projetos.
+# A fonte real (projetos.md) é local; versionamos só projetos.example.md.
+.claude/projetos.md
+
+# --- Relatórios ---
+# HTML intermediário é descartável
+relatorios/.tmp/
+relatorios/*.html
+
+# PDFs finais ficam comitados pra demo (pequenos)
+!relatorios/*.pdf

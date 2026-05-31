@@ -1,0 +1,361 @@
+{
+  "task_id": "TASK-001",
+  "titulo_curto": "Transferencia PIX agendada",
+  "autor": "Maria Silva",
+  "data_geracao": "2026-05-22",
+  "tipo": "feature",
+  "complexidade": "L",
+  "risco": "medio",
+  "sumario_executivo": "Implementado end-to-end o agendamento de transferencias PIX, com backend (job scheduler reaproveitando o scheduler-service existente), frontend mobile (botao 'Agendar' no fluxo PIX) e notificacoes push + email. Cobertura de testes alcancada: 87%. Veredicto global PASS com 91/100.",
+  "tarefa_original": "Maria e cliente Itau e usa o app regularmente para pagar o aluguel. Hoje ela precisa lembrar de fazer o PIX no dia 5 de cada mes para o proprietario. Ela quer uma forma de agendar o PIX para acontecer automaticamente em uma data futura, sem depender da memoria.\n\nA jornada esperada:\n1. Maria abre o app, escolhe 'PIX'\n2. Insere chave do destinatario e valor\n3. Toca em 'Agendar' (novo botao)\n4. Seleciona data futura (ate 90 dias)\n5. Confirma com senha biometrica\n6. Recebe confirmacao\n7. No dia agendado, a transferencia e executada automaticamente\n8. Maria recebe notificacao de sucesso/falha",
+  "orquestrador": {
+    "classificacao": {
+      "tipo": "feature",
+      "complexidade": "L",
+      "risco": "medio"
+    },
+    "plano": "Quebrar em 4 subtarefas paralelizaveis:\n- ST-001: Backend - endpoint POST /pix/transferencia/agendamento + entidade + validacoes\n- ST-002: Backend - job scheduler (cron) + integracao com scheduler-service\n- ST-003: Frontend - novo botao 'Agendar' + tela de selecao de data + confirmacao biometrica\n- ST-004: Notificacoes - template de email + push notification\n\nUsar 4 devs em paralelo. ST-002 depende parcialmente de ST-001 (DTO). Esteira completa de testes incluindo seguranca (manipulacao de valor monetario).",
+    "estrategia": "Implementacao em paralelo com 4 desenvolvedores. ST-001 e ST-003 podem rodar totalmente em paralelo. ST-002 espera o DTO de ST-001 (sincronizacao via mailbox). ST-004 tambem em paralelo. Apos todos prontos, sorteio de revisores e merge na branch feature/TASK-001-pix-agendado.",
+    "riscos": [
+      "Manipulacao de valor monetario exige validacao rigorosa de seguranca",
+      "Job scheduler deve ser idempotente (evitar duplicacao em caso de retry)",
+      "Janela de execucao 06:00-22:00 precisa respeitar fuso horario do cliente",
+      "Cancelamento ate 1h antes precisa ser atomico (evitar race condition)",
+      "Mudanca em fluxo PIX existente exige feature flag para rollback rapido"
+    ]
+  },
+  "devs": [
+    {
+      "id": "dev-1",
+      "subtarefa": "ST-001",
+      "descricao": "Endpoint POST /pix/transferencia/agendamento, entidade PixAgendamento, DTO com validacao (chave PIX, valor positivo, data futura ate 90 dias), service com regras de negocio.",
+      "arquivos_criados": [
+        "src/pix/agendamento/pix-agendamento.controller.ts",
+        "src/pix/agendamento/pix-agendamento.service.ts",
+        "src/pix/agendamento/dto/agendar-pix.dto.ts",
+        "src/pix/agendamento/entities/pix-agendamento.entity.ts",
+        "src/pix/agendamento/pix-agendamento.service.spec.ts"
+      ],
+      "arquivos_modificados": [
+        "src/pix/pix.module.ts: registrado novo controller e service",
+        "src/database/migrations/2026052201-pix-agendamento.ts: tabela pix_agendamento"
+      ],
+      "decisoes": [
+        "Reaproveitar PixValidator existente para validacao da chave PIX",
+        "Adicionar coluna status (enum: AGENDADO, EXECUTADO, CANCELADO, FALHA) em vez de tabelas separadas",
+        "Indexar (data_agendada, status) para query eficiente no scheduler",
+        "Saldo NAO validado no agendamento conforme criterio de aceite"
+      ],
+      "codigo_destaque": {
+        "arquivo": "src/pix/agendamento/dto/agendar-pix.dto.ts",
+        "linguagem": "typescript",
+        "trecho": "import { IsString, IsNumber, IsDateString, IsEnum, Min, MaxDate } from 'class-validator';\nimport { Type } from 'class-transformer';\n\nexport class AgendarPixDto {\n  @IsString()\n  chavePix: string;\n\n  @IsEnum(['CPF', 'TELEFONE', 'EMAIL', 'ALEATORIA'])\n  tipoChave: TipoChavePix;\n\n  @IsNumber()\n  @Min(0.01, { message: 'Valor deve ser positivo' })\n  valor: number;\n\n  @IsDateString()\n  @Type(() => Date)\n  @MaxDate(\n    () => addDays(new Date(), 90),\n    { message: 'Data nao pode exceder 90 dias' }\n  )\n  dataAgendada: Date;\n\n  @IsString()\n  descricao?: string;\n}"
+      },
+      "testes": {
+        "total": "12 testes",
+        "cenarios": ["happy path", "valor zero/negativo", "data passada", "data > 90 dias", "chave invalida", "duplicacao", "concorrencia", "auditoria"]
+      },
+      "commit_hash": "a3f7c12"
+    },
+    {
+      "id": "dev-2",
+      "subtarefa": "ST-002",
+      "descricao": "Job scheduler (cron) que executa agendamentos pendentes a cada minuto, integrando com scheduler-service. Inclui idempotencia, retry com backoff e logging auditavel.",
+      "arquivos_criados": [
+        "src/pix/agendamento/scheduler/pix-scheduler.job.ts",
+        "src/pix/agendamento/scheduler/pix-scheduler.service.ts",
+        "src/pix/agendamento/scheduler/pix-scheduler.service.spec.ts"
+      ],
+      "arquivos_modificados": [
+        "src/pix/agendamento/pix-agendamento.module.ts: registrado scheduler",
+        "src/app.module.ts: ScheduleModule.forRoot()"
+      ],
+      "decisoes": [
+        "Lock pessimista no DB para evitar processamento duplicado em ambientes multi-instancia",
+        "Janela de execucao 06:00-22:00 verificada por timezone do cliente (campo no agendamento)",
+        "Falha NAO reagenda automaticamente, apenas marca como FALHA e dispara notificacao",
+        "Log estruturado JSON com correlationId em cada transicao"
+      ],
+      "codigo_destaque": {
+        "arquivo": "src/pix/agendamento/scheduler/pix-scheduler.job.ts",
+        "linguagem": "typescript",
+        "trecho": "@Cron('*/1 * * * *') // a cada minuto\nasync executarAgendamentosPendentes() {\n  const agora = new Date();\n  const agendamentos = await this.repo\n    .createQueryBuilder('a')\n    .where('a.status = :status', { status: 'AGENDADO' })\n    .andWhere('a.dataAgendada <= :agora', { agora })\n    .setLock('pessimistic_write')\n    .limit(50)\n    .getMany();\n\n  for (const ag of agendamentos) {\n    if (!this.dentroJanelaExecucao(ag, agora)) continue;\n    await this.processar(ag);\n  }\n}"
+      },
+      "testes": {
+        "total": "8 testes",
+        "cenarios": ["happy path", "janela fora 06-22", "concorrencia (lock)", "falha saldo", "retry", "idempotencia"]
+      },
+      "commit_hash": "b9e2d44"
+    },
+    {
+      "id": "dev-3",
+      "subtarefa": "ST-003",
+      "descricao": "Frontend mobile: novo botao 'Agendar' no fluxo PIX, tela de selecao de data com calendario, confirmacao biometrica antes de submeter.",
+      "arquivos_criados": [
+        "src/screens/pix/agendar/PixAgendarScreen.tsx",
+        "src/screens/pix/agendar/SeletorDataAgendamento.tsx",
+        "src/screens/pix/agendar/PixAgendarScreen.test.tsx"
+      ],
+      "arquivos_modificados": [
+        "src/screens/pix/PixHomeScreen.tsx: adicionado botao 'Agendar'",
+        "src/api/pix.api.ts: nova chamada agendarPix()",
+        "src/navigation/PixNavigator.tsx: rota PixAgendar"
+      ],
+      "decisoes": [
+        "Usar componente Calendar do design system Itau ja existente",
+        "Bloquear datas D+90 e datas passadas no calendario",
+        "Biometria via hook useBiometricAuth() ja usado em outras telas",
+        "Feature flag 'pix.agendamento.habilitado' antes de mostrar o botao"
+      ],
+      "codigo_destaque": {
+        "arquivo": "src/screens/pix/agendar/PixAgendarScreen.tsx",
+        "linguagem": "tsx",
+        "trecho": "export function PixAgendarScreen() {\n  const [dataAgendada, setDataAgendada] = useState<Date>();\n  const { autenticar } = useBiometricAuth();\n\n  async function handleAgendar() {\n    if (!dataAgendada) return;\n    const ok = await autenticar('Confirmar agendamento PIX');\n    if (!ok) return;\n\n    await pixApi.agendarPix({\n      chavePix: chave,\n      valor,\n      dataAgendada,\n      descricao,\n    });\n\n    navigate('PixAgendamentoConfirmado');\n  }\n\n  return (\n    <Screen testID=\"pix-agendar-screen\">\n      {/* ... */}\n    </Screen>\n  );\n}"
+      },
+      "testes": {
+        "total": "9 testes",
+        "cenarios": ["render", "selecao de data", "data invalida", "biometria falha", "submit OK", "loading", "erro de rede"]
+      },
+      "commit_hash": "c4a1e88"
+    },
+    {
+      "id": "dev-4",
+      "subtarefa": "ST-004",
+      "descricao": "Notificacoes: template de email (sucesso/falha) e push notification via FCM.",
+      "arquivos_criados": [
+        "src/pix/agendamento/notificacao/pix-notificacao.service.ts",
+        "src/pix/agendamento/notificacao/templates/pix-agendado-sucesso.template.ts",
+        "src/pix/agendamento/notificacao/templates/pix-agendado-falha.template.ts",
+        "src/pix/agendamento/notificacao/pix-notificacao.service.spec.ts"
+      ],
+      "arquivos_modificados": [
+        "src/pix/agendamento/scheduler/pix-scheduler.service.ts: dispara notificacao apos processar"
+      ],
+      "decisoes": [
+        "Reusar EmailService e PushService ja existentes",
+        "Template em portugues, com identidade Itau",
+        "Tentativa unica de push - se falhar, registra mas nao retenta (email e o canal confiavel)"
+      ],
+      "codigo_destaque": {
+        "arquivo": "src/pix/agendamento/notificacao/pix-notificacao.service.ts",
+        "linguagem": "typescript",
+        "trecho": "async notificarSucesso(agendamento: PixAgendamento) {\n  await this.emailService.enviar({\n    para: agendamento.cliente.email,\n    template: 'pix-agendado-sucesso',\n    dados: {\n      nome: agendamento.cliente.nome,\n      valor: formatarMoeda(agendamento.valor),\n      destinatario: agendamento.chavePix,\n      data: formatarData(agendamento.dataAgendada),\n    },\n  });\n\n  await this.pushService.enviar({\n    deviceToken: agendamento.cliente.fcmToken,\n    titulo: 'PIX agendado executado',\n    corpo: `R$ ${formatarMoeda(agendamento.valor)} para ${agendamento.chavePix}`,\n  }).catch(err => this.logger.warn('Push falhou', err));\n}"
+      },
+      "testes": {
+        "total": "6 testes",
+        "cenarios": ["sucesso email + push", "email OK push falha", "template fallback"]
+      },
+      "commit_hash": "d8b5e2a"
+    }
+  ],
+  "reviews": [
+    {
+      "revisor": "dev-3",
+      "revisado": "dev-1",
+      "veredicto": "APROVADO",
+      "pontos_positivos": [
+        "Validacao com class-validator esta completa e clara",
+        "Reaproveitamento do PixValidator existente foi a decisao correta",
+        "Migration com indice composto bem pensado"
+      ],
+      "issues": []
+    },
+    {
+      "revisor": "dev-5",
+      "revisado": "dev-1",
+      "veredicto": "APROVADO COM SUGESTOES",
+      "pontos_positivos": [
+        "Service tem boa separacao de responsabilidades",
+        "Testes cobrem bem os edge cases"
+      ],
+      "issues": [
+        {
+          "arquivo": "pix-agendamento.service.ts",
+          "linha": 88,
+          "severidade": "sugestao",
+          "descricao": "Constante magic number '90' poderia estar em config",
+          "correcao": "Extrair para constante DIAS_MAX_AGENDAMENTO em config/pix.config.ts"
+        }
+      ]
+    },
+    {
+      "revisor": "dev-1",
+      "revisado": "dev-2",
+      "veredicto": "APROVADO COM SUGESTOES",
+      "pontos_positivos": [
+        "Lock pessimista bem aplicado",
+        "Idempotencia esta solida"
+      ],
+      "issues": [
+        {
+          "arquivo": "pix-scheduler.job.ts",
+          "linha": 24,
+          "severidade": "importante",
+          "descricao": "Limite hardcoded de 50 agendamentos por execucao pode ser gargalo em horarios de pico",
+          "correcao": "Mover para config + monitorar metricas de fila"
+        }
+      ]
+    },
+    {
+      "revisor": "dev-4",
+      "revisado": "dev-2",
+      "veredicto": "APROVADO",
+      "pontos_positivos": [
+        "Log estruturado com correlationId facilita auditoria",
+        "Logica de janela de execucao por timezone bem clara"
+      ],
+      "issues": []
+    },
+    {
+      "revisor": "dev-2",
+      "revisado": "dev-3",
+      "veredicto": "APROVADO",
+      "pontos_positivos": [
+        "Feature flag bem aplicada",
+        "Componentizacao do calendario reusavel"
+      ],
+      "issues": []
+    },
+    {
+      "revisor": "dev-5",
+      "revisado": "dev-3",
+      "veredicto": "APROVADO COM SUGESTOES",
+      "pontos_positivos": [
+        "UX clara, segue padrao do app",
+        "Tratamento de loading/erro presente"
+      ],
+      "issues": [
+        {
+          "arquivo": "PixAgendarScreen.tsx",
+          "linha": 42,
+          "severidade": "sugestao",
+          "descricao": "useEffect com dependencias [valor, chave] pode causar re-render desnecessario",
+          "correcao": "Usar useMemo para o objeto de pre-validacao"
+        }
+      ]
+    },
+    {
+      "revisor": "dev-1",
+      "revisado": "dev-4",
+      "veredicto": "APROVADO",
+      "pontos_positivos": [
+        "Templates bem estruturados",
+        "Decisao de nao retentar push esta documentada e correta"
+      ],
+      "issues": []
+    },
+    {
+      "revisor": "dev-3",
+      "revisado": "dev-4",
+      "veredicto": "APROVADO",
+      "pontos_positivos": [
+        "Reuso de servicos existentes",
+        "Catch de erros nao bloqueia fluxo principal"
+      ],
+      "issues": []
+    }
+  ],
+  "testes": {
+    "veredicto": "PASS",
+    "nota_global": 91,
+    "quality_gate": {
+      "executado": true,
+      "veredicto": "PASS",
+      "score": 92,
+      "resumo": "Prettier OK, ESLint 0 errors / 2 warnings, TypeScript OK, sem smells bloqueantes",
+      "bloqueantes": [],
+      "importantes": ["1 funcao em pix-scheduler.service.ts com 52 linhas (limite 50) - considerar split"],
+      "sugestoes": ["Magic number 90 dias", "2 strings duplicadas em templates"]
+    },
+    "cobertura": {
+      "executado": true,
+      "veredicto": "PASS",
+      "score": 90,
+      "resumo": "Cobertura global 87%. 35 testes adicionados, todos passando.",
+      "bloqueantes": [],
+      "importantes": [],
+      "sugestoes": ["Adicionar teste e2e do fluxo completo no proximo ciclo"]
+    },
+    "seguranca": {
+      "executado": true,
+      "veredicto": "PASS",
+      "score": 94,
+      "resumo": "Nenhum secret vazado, nenhuma vulnerabilidade alta, validacao de inputs presente.",
+      "bloqueantes": [],
+      "importantes": [],
+      "sugestoes": [
+        "Considerar rate limiting no endpoint de agendamento para evitar spam",
+        "Auditar logs para garantir que valor monetario nao aparece em log de info"
+      ]
+    },
+    "performance": {
+      "executado": true,
+      "veredicto": "PASS",
+      "score": 88,
+      "resumo": "Bundle do app cresceu 8KB (aceitavel). Query do scheduler com indice composto.",
+      "bloqueantes": [],
+      "importantes": ["Limite de 50 agendamentos por execucao pode ser gargalo - monitorar"],
+      "sugestoes": ["Cache de chaves PIX validadas para reduzir chamadas a PixValidator"]
+    },
+    "testes_gerados": [
+      {
+        "arquivo": "src/pix/agendamento/pix-agendamento.service.spec.ts",
+        "tipo": "unitario",
+        "trecho": "describe('PixAgendamentoService', () => {\n  describe('agendar', () => {\n    it('deve criar agendamento valido com data futura', async () => {\n      const dto = factory.agendarPixDto({ dataAgendada: addDays(new Date(), 5) });\n      const resultado = await service.agendar(dto, cliente);\n      expect(resultado.id).toBeDefined();\n      expect(resultado.status).toBe('AGENDADO');\n    });\n\n    it('deve rejeitar agendamento com data passada', async () => {\n      const dto = factory.agendarPixDto({ dataAgendada: subDays(new Date(), 1) });\n      await expect(service.agendar(dto, cliente))\n        .rejects.toThrow(DataInvalidaException);\n    });\n\n    it('deve rejeitar valor zero ou negativo', async () => {\n      const dto = factory.agendarPixDto({ valor: 0 });\n      await expect(service.agendar(dto, cliente))\n        .rejects.toThrow(ValorInvalidoException);\n    });\n  });\n});"
+      },
+      {
+        "arquivo": "src/pix/agendamento/scheduler/pix-scheduler.service.spec.ts",
+        "tipo": "integracao",
+        "trecho": "describe('PixSchedulerService - integracao', () => {\n  it('deve processar agendamentos pendentes respeitando janela', async () => {\n    const ag = await criarAgendamento({\n      dataAgendada: new Date(),\n      status: 'AGENDADO',\n      timezone: 'America/Sao_Paulo',\n    });\n\n    jest.useFakeTimers().setSystemTime(new Date('2026-05-22T15:00:00-03:00'));\n\n    await service.executarAgendamentosPendentes();\n\n    const atualizado = await repo.findOne(ag.id);\n    expect(atualizado.status).toBe('EXECUTADO');\n  });\n});"
+      }
+    ]
+  },
+  "timeline": [
+    { "hora": "09:00", "evento": "Tarefa TASK-001 criada via /nova-tarefa" },
+    { "hora": "09:02", "evento": "/tarefa TASK-001 acionado" },
+    { "hora": "09:04", "evento": "Orquestrador classificou: feature / L / risco medio" },
+    { "hora": "09:07", "evento": "Plano apresentado e aprovado pelo humano" },
+    { "hora": "09:08", "evento": "Dev Tech Lead acionado" },
+    { "hora": "09:10", "evento": "4 worktrees criados (dev-1 ate dev-4)" },
+    { "hora": "09:11", "evento": "Devs 1-4 iniciados em paralelo" },
+    { "hora": "10:34", "evento": "Dev-3 concluiu ST-003 (frontend)" },
+    { "hora": "10:48", "evento": "Dev-4 concluiu ST-004 (notificacoes)" },
+    { "hora": "11:05", "evento": "Dev-1 concluiu ST-001 (backend principal)" },
+    { "hora": "11:22", "evento": "Dev-2 concluiu ST-002 (scheduler)" },
+    { "hora": "11:23", "evento": "Sorteio de revisores executado" },
+    { "hora": "11:25", "evento": "8 reviews iniciados em paralelo" },
+    { "hora": "11:54", "evento": "Reviews concluidos: 5 aprovados, 3 com sugestoes (nao bloqueante)" },
+    { "hora": "11:56", "evento": "Merge dos worktrees na branch feature/TASK-001-pix-agendado" },
+    { "hora": "11:58", "evento": "Dev Tech Lead devolveu controle ao Orquestrador" },
+    { "hora": "12:00", "evento": "Teste Tech Lead acionado" },
+    { "hora": "12:01", "evento": "4 frentes de teste iniciadas em paralelo" },
+    { "hora": "12:14", "evento": "Quality Gate: PASS (92/100)" },
+    { "hora": "12:18", "evento": "Cobertura: PASS (90/100) - 35 testes adicionados" },
+    { "hora": "12:21", "evento": "Seguranca: PASS (94/100)" },
+    { "hora": "12:24", "evento": "Performance: PASS (88/100)" },
+    { "hora": "12:26", "evento": "Nota global Itau: 91/100 - APROVADO" },
+    { "hora": "12:28", "evento": "Doc Especialista acionado" },
+    { "hora": "12:32", "evento": "PDF gerado em relatorios/TASK-001.pdf (842KB, 14 paginas)" }
+  ],
+  "anexos": {
+    "arquivos_modificados": [
+      "src/pix/agendamento/pix-agendamento.controller.ts",
+      "src/pix/agendamento/pix-agendamento.service.ts",
+      "src/pix/agendamento/dto/agendar-pix.dto.ts",
+      "src/pix/agendamento/entities/pix-agendamento.entity.ts",
+      "src/pix/agendamento/pix-agendamento.service.spec.ts",
+      "src/pix/agendamento/scheduler/pix-scheduler.job.ts",
+      "src/pix/agendamento/scheduler/pix-scheduler.service.ts",
+      "src/pix/agendamento/scheduler/pix-scheduler.service.spec.ts",
+      "src/pix/agendamento/notificacao/pix-notificacao.service.ts",
+      "src/pix/agendamento/notificacao/templates/pix-agendado-sucesso.template.ts",
+      "src/pix/agendamento/notificacao/templates/pix-agendado-falha.template.ts",
+      "src/pix/agendamento/notificacao/pix-notificacao.service.spec.ts",
+      "src/screens/pix/agendar/PixAgendarScreen.tsx",
+      "src/screens/pix/agendar/SeletorDataAgendamento.tsx",
+      "src/screens/pix/agendar/PixAgendarScreen.test.tsx",
+      "src/database/migrations/2026052201-pix-agendamento.ts"
+    ],
+    "integracoes_usadas": []
+  }
+}
