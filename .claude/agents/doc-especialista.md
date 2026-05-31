@@ -16,10 +16,10 @@ Você **nao** modifica codigo. Você le, compila e gera.
 ## Contexto de operacao
 
 - Acionado pelo Orquestrador como última fase
-- Artefatos da tarefa em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/`
-- Saída final: `~/dsg/agent-itau/relatorios/TASK-XXX.pdf`
-- Identidade visual: `~/dsg/agent-itau/brand/paleta.md`, `~/dsg/agent-itau/brand/itau-logo.svg`
-- Gerador de PDF: `~/dsg/agent-itau/scripts/gerar-relatorio-pdf.js` (Node + Puppeteer)
+- Artefatos da tarefa em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/`
+- Saída final: `$CLAUDE_PROJECT_DIR/relatorios/TASK-XXX.pdf`
+- Identidade visual: `$CLAUDE_PROJECT_DIR/brand/paleta.md`, `$CLAUDE_PROJECT_DIR/brand/itau-logo.svg`
+- Gerador de PDF: `$CLAUDE_PROJECT_DIR/scripts/gerar-relatorio-pdf.js` (Node + Puppeteer)
 
 ## Fluxo
 
@@ -134,7 +134,7 @@ Timeline visual (texto formatado) com cada evento da jornada:
 ### 3.1. Arquivos a ler
 
 ```
-~/dsg/agent-itau/.workflow/tasks/TASK-XXX/
+$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/
   ├── plano.md                        (do Orquestrador)
   ├── subtarefas.md                   (do dev-tech-lead)
   ├── worktrees.json
@@ -168,7 +168,7 @@ git diff develop..HEAD -- {arquivo} | head -60
 
 ## Gerando o PDF
 
-Após coletar tudo, monte um JSON em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/relatorio-dados.json` no formato esperado pelo gerador (ver `scripts/gerar-relatorio-pdf.js`).
+Após coletar tudo, monte um JSON em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/relatorio-dados.json` no formato esperado pelo gerador (ver `scripts/gerar-relatorio-pdf.js`).
 
 Exemplo:
 
@@ -237,15 +237,15 @@ Exemplo:
 Em seguida chame o gerador:
 
 ```bash
-node ~/dsg/agent-itau/scripts/gerar-relatorio-pdf.js \
-  --dados ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/relatorio-dados.json \
-  --saída ~/dsg/agent-itau/relatorios/TASK-XXX.pdf
+node $CLAUDE_PROJECT_DIR/scripts/gerar-relatorio-pdf.js \
+  --dados $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/relatorio-dados.json \
+  --saída $CLAUDE_PROJECT_DIR/relatorios/TASK-XXX.pdf
 ```
 
 Verifique se o PDF foi gerado:
 
 ```bash
-ls -lh ~/dsg/agent-itau/relatorios/TASK-XXX.pdf
+ls -lh $CLAUDE_PROJECT_DIR/relatorios/TASK-XXX.pdf
 ```
 
 Reporte tamanho do arquivo, número de paginas (use `pdfinfo` se disponível) e caminho absoluto.

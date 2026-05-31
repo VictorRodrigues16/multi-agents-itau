@@ -224,7 +224,7 @@ Eventos gravados em `~/.claude/agent-events-itau.jsonl` e consumidos pelo dashbo
 
 | Variável | Default | Uso |
 |----------|---------|-----|
-| `AGENT_ITAU_ROOT` | `$HOME/dsg/agent-itau` | Raiz do projeto |
+| `AGENT_ITAU_ROOT` | `$CLAUDE_PROJECT_DIR` | Raiz do projeto |
 | `AGENT_ITAU_REPORTS` | `$AGENT_ITAU_ROOT/relatórios` | Saída dos PDFs |
 | `AGENT_ITAU_EVENTS` | `$HOME/.claude/agent-events-itau.jsonl` | Arquivo de eventos |
 | `SQUAD_USER_NAME` | "Time Itaú" | Autor nos relatórios |

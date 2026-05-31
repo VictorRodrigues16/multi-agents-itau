@@ -15,7 +15,7 @@ Você analisa **somente os arquivos modificados** procurando vulnerabilidades de
 
 - Acionado pelo `teste-tech-lead`
 - Lista de arquivos modificados em `files-changed.txt`
-- Resultado em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/segurança.md`
+- Resultado em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/segurança.md`
 
 ## Frentes de analise
 
@@ -114,7 +114,7 @@ Mínimo 0.
 
 ## Formato de saída
 
-`~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/segurança.md`:
+`$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/segurança.md`:
 
 ```markdown
 # Segurança — TASK-XXX

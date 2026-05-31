@@ -18,8 +18,8 @@
       "Bash(npx eslint:*)",
       "Bash(npx prettier:*)",
       "Bash(node:*)",
-      "Bash(~/dsg/agent-itau/scripts/emit-event.sh:*)",
-      "Bash(~/dsg/agent-itau/scripts/sortear-revisores.sh:*)"
+      "Bash($CLAUDE_PROJECT_DIR/scripts/emit-event.sh:*)",
+      "Bash($CLAUDE_PROJECT_DIR/scripts/sortear-revisores.sh:*)"
     ],
     "deny": [
       "Bash(rm -rf:*)",
@@ -28,8 +28,6 @@
     ]
   },
   "env": {
-    "AGENT_ITAU_ROOT": "$HOME/dsg/agent-itau",
-    "AGENT_ITAU_REPORTS": "$HOME/dsg/agent-itau/relatorios",
     "AGENT_ITAU_EVENTS": "$HOME/.claude/agent-events-itau.jsonl"
   }
 }

@@ -25,15 +25,15 @@ Lista todas as tarefas registradas em `tarefas/`, com status calculado a partir 
 
 1. **Listar arquivos de tarefa**:
    ```bash
-   ls ~/dsg/agent-itau/tarefas/ | grep -E "^TASK-[0-9]+\.md$" | sort
+   ls $CLAUDE_PROJECT_DIR/tarefas/ | grep -E "^TASK-[0-9]+\.md$" | sort
    ```
 
 2. Para cada tarefa, calcular status:
    ```bash
    TASK_ID=$(basename "$arq" .md)
-   if [ -f "~/dsg/agent-itau/relatorios/$TASK_ID.pdf" ]; then
+   if [ -f "$CLAUDE_PROJECT_DIR/relatorios/$TASK_ID.pdf" ]; then
      STATUS="concluída"
-   elif [ -d "~/dsg/agent-itau/.workflow/tasks/$TASK_ID" ]; then
+   elif [ -d "$CLAUDE_PROJECT_DIR/.workflow/tasks/$TASK_ID" ]; then
      STATUS="em-execução"
    else
      STATUS="pendente"

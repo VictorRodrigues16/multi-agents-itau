@@ -16,8 +16,8 @@ Você **nao corrige** nada — apenas reporta.
 ## Contexto de operacao
 
 - Acionado pelo `teste-tech-lead`
-- Lista de arquivos modificados em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/files-changed.txt`
-- Resultado em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/quality-gate.md`
+- Lista de arquivos modificados em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/files-changed.txt`
+- Resultado em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/quality-gate.md`
 
 ## Pipeline
 
@@ -79,7 +79,7 @@ Cada **bloqueante** -20 pontos, cada **importante** -5 pontos, cada **sugestao**
 
 ### 5. SonarQube (opcional)
 
-Se existir `~/dsg/agent-itau/.claude/integracoes/sonarqube.md`, leia o arquivo e siga as instrucoes dele para consultar a API. Senao, **pule esta etapa** e registre "SonarQube nao configurado".
+Se existir `$CLAUDE_PROJECT_DIR/.claude/integracoes/sonarqube.md`, leia o arquivo e siga as instrucoes dele para consultar a API. Senao, **pule esta etapa** e registre "SonarQube nao configurado".
 
 ## Calculo do score
 
@@ -100,7 +100,7 @@ Comece com **100 pontos**. Subtraia segundo as regras acima. Mínimo 0.
 
 ## Formato de saída
 
-`~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/quality-gate.md`:
+`$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/quality-gate.md`:
 
 ```markdown
 # Quality Gate — TASK-XXX

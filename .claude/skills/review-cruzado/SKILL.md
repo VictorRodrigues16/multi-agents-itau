@@ -28,7 +28,7 @@ Se nao houver resultados de devs, avise o usuario e sugira `/tarefa TASK-XXX`.
 
 1. **Identificar devs participantes**:
    ```bash
-   ls ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/dev-*-result.md
+   ls $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/dev-*-result.md
    ```
    Extraia os IDs (dev-1, dev-2, ...).
 
@@ -36,7 +36,7 @@ Se nao houver resultados de devs, avise o usuario e sugira `/tarefa TASK-XXX`.
    ```bash
    for dev in $devs; do
      outros=$(echo "$devs" | grep -v "^$dev$" | paste -sd ',')
-     revisores=$(~/dsg/agent-itau/scripts/sortear-revisores.sh "$dev" "$outros")
+     revisores=$($CLAUDE_PROJECT_DIR/scripts/sortear-revisores.sh "$dev" "$outros")
      echo "$dev -> $revisores"
    done
    ```
@@ -48,7 +48,7 @@ Se nao houver resultados de devs, avise o usuario e sugira `/tarefa TASK-XXX`.
 ```
 Agent(
   description: "[dev-especialista-{rev}] Review do dev-{revisado} ($TASK_ID)",
-  prompt: "Leia ~/dsg/agent-itau/.claude/agents/dev-especialista-{rev}.md.
+  prompt: "Leia $CLAUDE_PROJECT_DIR/.claude/agents/dev-especialista-{rev}.md.
            Modo: REVIEW.
            Revisar trabalho de: dev-{revisado}
            Worktree do revisado: ver .workflow/tasks/$TASK_ID/worktrees.json

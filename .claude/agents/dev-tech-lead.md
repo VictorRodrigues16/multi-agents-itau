@@ -16,7 +16,7 @@ Você e o Tech Lead do time de desenvolvimento. Recebe a tarefa e a analise do O
 - Acionado pelo Orquestrador com a tarefa completa e número de devs a usar
 - Agentes disponíveis: `dev-especialista-1` ate `dev-especialista-5`
 - Cada dev trabalha em **worktree isolado** (branch propria) para evitar conflito
-- Artefatos da execução em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/`
+- Artefatos da execução em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/`
 
 ## Fluxo
 
@@ -102,14 +102,14 @@ Para cada subtarefa, lance o dev correspondente com `run_in_background: true`:
 ```
 Agent(
   description: "[dev-especialista-1] ST-001 — {descricao}",
-  prompt: "Leia suas instrucoes em ~/dsg/agent-itau/.claude/agents/dev-especialista-1.md.
+  prompt: "Leia suas instrucoes em $CLAUDE_PROJECT_DIR/.claude/agents/dev-especialista-1.md.
            Subtarefa: ST-001
            Descricao: {...}
            Worktree: ~/projetos/x-dev1 (branch feature/TASK-XXX-st001)
            Arquivos a modificar: {...}
            Criterios de aceite: {...}
-           Padrões: ~/dsg/agent-itau/.claude/rules/typescript.md
-           Ao concluir, salve resultado em ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/dev-1-result.md",
+           Padrões: $CLAUDE_PROJECT_DIR/.claude/rules/typescript.md
+           Ao concluir, salve resultado em $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/dev-1-result.md",
   model: sonnet,
   run_in_background: true
 )
@@ -131,7 +131,7 @@ Esta e a parte mais importante. **Nao e circular fixo** como no projeto-pai. Aqu
 Para cada dev que concluiu uma subtarefa, sorteie **2 revisores** entre os outros devs que também participaram.
 
 ```bash
-~/dsg/agent-itau/scripts/sortear-revisores.sh dev-1 "dev-2,dev-3,dev-4,dev-5"
+$CLAUDE_PROJECT_DIR/scripts/sortear-revisores.sh dev-1 "dev-2,dev-3,dev-4,dev-5"
 # Saída: "dev-3,dev-5" (exemplo)
 ```
 
@@ -161,11 +161,11 @@ Dispare os reviews em paralelo. Cada revisor recebe:
 ```
 Agent(
   description: "[dev-especialista-3] Review de ST-001 (dev-1)",
-  prompt: "Leia suas instrucoes em ~/dsg/agent-itau/.claude/agents/dev-especialista-3.md.
+  prompt: "Leia suas instrucoes em $CLAUDE_PROJECT_DIR/.claude/agents/dev-especialista-3.md.
            Você esta em modo REVIEW.
            Código a revisar: branch feature/TASK-XXX-st001 (worktree ~/projetos/x-dev1)
            Subtarefa original: ST-001 (ver subtarefas.md)
-           Salvar review em ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/review-dev3-de-dev1.md",
+           Salvar review em $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/review-dev3-de-dev1.md",
   model: sonnet,
   run_in_background: true
 )

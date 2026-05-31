@@ -31,7 +31,7 @@ Você **NUNCA** implementa codigo diretamente. Você **NUNCA** roda testes diret
 ## Contexto de operacao
 
 - Tarefa de entrada: arquivo em `tarefas/TASK-XXX.md` (jornada do cliente / refinamento)
-- Artefatos da execução: `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/`
+- Artefatos da execução: `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/`
 - Relatório final: `relatorios/TASK-XXX.pdf`
 - Identidade do usuario: ler `.env.local` se existir (SQUAD_USER_NAME)
 
@@ -39,12 +39,12 @@ Você **NUNCA** implementa codigo diretamente. Você **NUNCA** roda testes diret
 
 **ANTES** de cada Agent call, emita evento `spawning`:
 ```bash
-~/dsg/agent-itau/scripts/emit-event.sh spawning {agent-id} "$TASK_ID" "{descricao curta}"
+$CLAUDE_PROJECT_DIR/scripts/emit-event.sh spawning {agent-id} "$TASK_ID" "{descricao curta}"
 ```
 
 **APOS** cada Agent concluir, emita evento `stopped`:
 ```bash
-~/dsg/agent-itau/scripts/emit-event.sh stopped {agent-id} "$TASK_ID" {success|error} "{resumo}"
+$CLAUDE_PROJECT_DIR/scripts/emit-event.sh stopped {agent-id} "$TASK_ID" {success|error} "{resumo}"
 ```
 
 Onde `$TASK_ID` e o ID da tarefa (ex: TASK-001).
@@ -85,7 +85,7 @@ FIM                    (apresenta relatório ao humano)
    - Risco: `baixo` | `medio` | `alto` (alto = mexe em fluxo crítico, requer aprovacao extra)
 
 3. **Identificar projetos-alvo**: quais repos serão tocados.
-   - Se já existir `~/dsg/agent-itau/.workflow/contexts/{projeto}/project-context.json`, use.
+   - Se já existir `$CLAUDE_PROJECT_DIR/.workflow/contexts/{projeto}/project-context.json`, use.
    - Se nao, faca um scan rápido (ler README + estrutura de pastas) e registre.
 
 4. **Estrategia de execução**:
@@ -132,12 +132,12 @@ Acione o Dev Tech Lead. Passe a tarefa completa, sua analise, e o número de dev
 ```
 Agent(
   description: "[dev-tech-lead] TASK-XXX — coordenar implementação",
-  prompt: "Leia suas instrucoes em ~/dsg/agent-itau/.claude/agents/dev-tech-lead.md.
+  prompt: "Leia suas instrucoes em $CLAUDE_PROJECT_DIR/.claude/agents/dev-tech-lead.md.
            Tarefa: TASK-XXX (ver tarefas/TASK-XXX.md).
            Número de devs a usar: {N}
            Projetos: {lista}
            Subtarefas previstas: {lista}
-           Diretório de artefatos: ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/",
+           Diretório de artefatos: $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/",
   model: opus
 )
 ```
@@ -161,11 +161,11 @@ Após cada fase, **leia os artefatos gerados** e produza uma síntese curta. Voc
 ```
 Agent(
   description: "[teste-tech-lead] TASK-XXX — esteira de testes",
-  prompt: "Leia suas instrucoes em ~/dsg/agent-itau/.claude/agents/teste-tech-lead.md.
+  prompt: "Leia suas instrucoes em $CLAUDE_PROJECT_DIR/.claude/agents/teste-tech-lead.md.
            Tarefa: TASK-XXX.
            Arquivos modificados pelos devs: {lista — leia .workflow/tasks/TASK-XXX/files-changed.txt}
            Esteira solicitada: {quality, cobertura, segurança, performance}
-           Diretório de artefatos: ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/",
+           Diretório de artefatos: $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/",
   model: opus
 )
 ```
@@ -177,9 +177,9 @@ Quando concluir, leia `.workflow/tasks/TASK-XXX/testes/summary.md`. Se houver **
 ```
 Agent(
   description: "[doc-especialista] TASK-XXX — gerar relatório PDF",
-  prompt: "Leia suas instrucoes em ~/dsg/agent-itau/.claude/agents/doc-especialista.md.
+  prompt: "Leia suas instrucoes em $CLAUDE_PROJECT_DIR/.claude/agents/doc-especialista.md.
            Tarefa: TASK-XXX.
-           Diretório com TODOS os artefatos da execução: ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/
+           Diretório com TODOS os artefatos da execução: $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/
            Saída esperada: relatorios/TASK-XXX.pdf
            Use identidade visual Itaú (brand/paleta.md, brand/itau-logo.svg).",
   model: opus

@@ -192,7 +192,7 @@ Detalhes em [docs/fluxo-completo.md](docs/fluxo-completo.md) e [docs/arquitetura
 Para entregar pra alguém:
 
 1. Faça `git add . && git commit && git push`
-2. Quem clona pode colocar o repo **em qualquer pasta** (`~/agent-itau`, `~/Downloads/...`, etc.) — a raiz se auto-resolve, **não precisa** ser `~/dsg/agent-itau`.
+2. Quem clona pode colocar o repo **em qualquer pasta** (`~/agent-itau`, `~/Downloads/...`, etc.) — a raiz se auto-resolve, **não precisa** ser um caminho específico.
 3. Roda `bash scripts/init.sh` e está pronto.
 4. Os MDs de agentes / tarefas / regras vêm versionados — a outra pessoa vê tudo igual.
 

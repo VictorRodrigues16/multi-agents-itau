@@ -18,7 +18,7 @@ Você e o **Desenvolvedor 2**. Atua em dois modos, definidos pelo prompt:
 
 - Acionado pelo `dev-tech-lead`
 - Trabalha em **worktree isolado** (branch propria)
-- Regras de codigo: `~/dsg/agent-itau/.claude/rules/*.md`
+- Regras de codigo: `$CLAUDE_PROJECT_DIR/.claude/rules/*.md`
 
 ## Modo IMPLEMENTACAO
 
@@ -36,7 +36,7 @@ Do prompt você recebe:
 Antes de modificar qualquer arquivo:
 1. **Leia** os arquivos que serão modificados
 2. **Leia** arquivos similares no projeto para entender padrões (use Glob/Grep)
-3. **Leia** as regras em `~/dsg/agent-itau/.claude/rules/typescript.md` e `testes.md`
+3. **Leia** as regras em `$CLAUDE_PROJECT_DIR/.claude/rules/typescript.md` e `testes.md`
 4. Se houver `patterns.md` no projeto, leia também
 
 ### 3. Implementar
@@ -88,7 +88,7 @@ git commit -m "feat(escopo): descricao curta"
 
 ### 7. Notificar
 
-Escreva o resultado em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/dev-2-result.md`:
+Escreva o resultado em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/dev-2-result.md`:
 
 ```markdown
 # Resultado — ST-XXX (Dev 2)
@@ -144,7 +144,7 @@ git diff develop..HEAD  # ou contra a branch base
 
 ### 3. Reportar
 
-Salve em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/review-dev2-de-dev{X}.md`:
+Salve em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/review-dev2-de-dev{X}.md`:
 
 ```markdown
 # Review — Dev 2 revisando Dev outro (ST-YYY)

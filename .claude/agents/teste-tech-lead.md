@@ -21,8 +21,8 @@ Você decide quais frentes acionar com base no tipo de tarefa e dispara em paral
 ## Contexto de operacao
 
 - Acionado pelo Orquestrador após a fase de desenvolvimento
-- Artefatos da execução em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/`
-- Arquivos modificados: ler `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/files-changed.txt`
+- Artefatos da execução em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/`
+- Arquivos modificados: ler `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/files-changed.txt`
 
 ## Fluxo
 
@@ -52,7 +52,7 @@ Você decide quais frentes acionar com base no tipo de tarefa e dispara em paral
 | docs | sim (apenas lint de markdown) | nao | nao | nao |
 | hotfix | sim | apenas regressao | sim | nao |
 
-Registre a decisão em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/plano.md`.
+Registre a decisão em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/plano.md`.
 
 ## Passo 2 — Disparar em paralelo
 
@@ -63,9 +63,9 @@ Os 4 agentes podem rodar simultaneamente porque nao tem dependencia entre eles.
 ```
 Agent(
   description: "[teste-quality-gate] TASK-XXX",
-  prompt: "Leia suas instrucoes em ~/dsg/agent-itau/.claude/agents/teste-quality-gate.md.
-           Arquivos modificados: ver ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/files-changed.txt
-           Salvar resultado em ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/quality-gate.md",
+  prompt: "Leia suas instrucoes em $CLAUDE_PROJECT_DIR/.claude/agents/teste-quality-gate.md.
+           Arquivos modificados: ver $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/files-changed.txt
+           Salvar resultado em $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/quality-gate.md",
   model: sonnet,
   run_in_background: true
 )
@@ -76,10 +76,10 @@ Agent(
 ```
 Agent(
   description: "[teste-cobertura] TASK-XXX",
-  prompt: "Leia suas instrucoes em ~/dsg/agent-itau/.claude/agents/teste-cobertura.md.
+  prompt: "Leia suas instrucoes em $CLAUDE_PROJECT_DIR/.claude/agents/teste-cobertura.md.
            Arquivos modificados: ver files-changed.txt
            Tipo de tarefa: {tipo}
-           Salvar resultado em ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/cobertura.md",
+           Salvar resultado em $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/cobertura.md",
   model: sonnet,
   run_in_background: true
 )
@@ -90,9 +90,9 @@ Agent(
 ```
 Agent(
   description: "[teste-segurança] TASK-XXX",
-  prompt: "Leia suas instrucoes em ~/dsg/agent-itau/.claude/agents/teste-segurança.md.
+  prompt: "Leia suas instrucoes em $CLAUDE_PROJECT_DIR/.claude/agents/teste-segurança.md.
            Arquivos modificados: ver files-changed.txt
-           Salvar resultado em ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/segurança.md",
+           Salvar resultado em $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/segurança.md",
   model: sonnet,
   run_in_background: true
 )
@@ -103,9 +103,9 @@ Agent(
 ```
 Agent(
   description: "[teste-performance] TASK-XXX",
-  prompt: "Leia suas instrucoes em ~/dsg/agent-itau/.claude/agents/teste-performance.md.
+  prompt: "Leia suas instrucoes em $CLAUDE_PROJECT_DIR/.claude/agents/teste-performance.md.
            Arquivos modificados: ver files-changed.txt
-           Salvar resultado em ~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/performance.md",
+           Salvar resultado em $CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/performance.md",
   model: sonnet,
   run_in_background: true
 )
@@ -113,7 +113,7 @@ Agent(
 
 ## Passo 3 — Consolidar em summary.md
 
-Após todos concluirem, leia cada resultado e produza `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/summary.md`:
+Após todos concluirem, leia cada resultado e produza `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/summary.md`:
 
 ```markdown
 # Esteira de Testes — TASK-XXX

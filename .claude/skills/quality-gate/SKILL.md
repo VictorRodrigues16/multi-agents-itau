@@ -32,7 +32,7 @@ Roda **apenas** o Quality Gate (format + lint + types + analise complementar) so
 ```
 Agent(
   description: "[teste-quality-gate] /quality-gate ad-hoc",
-  prompt: "Leia ~/dsg/agent-itau/.claude/agents/teste-quality-gate.md.
+  prompt: "Leia $CLAUDE_PROJECT_DIR/.claude/agents/teste-quality-gate.md.
            Arquivos modificados: ler /tmp/quality-gate-files.txt
            Salve resultado em /tmp/quality-gate-result.md",
   model: sonnet
@@ -46,9 +46,9 @@ Agent(
 
 ### Modo 2 — Com TASK-ID
 
-1. Ler `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/files-changed.txt`
+1. Ler `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/files-changed.txt`
 2. Acionar o agente com esses arquivos
-3. Salvar resultado em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/quality-gate.md` (sobrescreve)
+3. Salvar resultado em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/quality-gate.md` (sobrescreve)
 4. Apresentar resultado
 
 ## Regras

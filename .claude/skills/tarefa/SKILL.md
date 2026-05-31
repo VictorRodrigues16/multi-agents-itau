@@ -25,9 +25,9 @@ Orquestrador -> Dev Tech Lead -> Devs (paralelo + review sorteio) -> Teste Tech 
 ### Modo lista (sem argumento)
 
 Se nenhum TASK-ID for fornecido:
-1. Liste arquivos em `~/dsg/agent-itau/tarefas/`
+1. Liste arquivos em `$CLAUDE_PROJECT_DIR/tarefas/`
 2. Para cada `TASK-XXX.md`, leia o frontmatter (se houver) e a primeira linha
-3. Verifique se ha relatório em `~/dsg/agent-itau/relatorios/TASK-XXX.pdf`
+3. Verifique se ha relatório em `$CLAUDE_PROJECT_DIR/relatorios/TASK-XXX.pdf`
 4. Exiba tabela:
 
 ```
@@ -44,19 +44,19 @@ Se nenhum TASK-ID for fornecido:
 #### FASE 0 — Setup
 
 1. Verifique se `tarefas/TASK-XXX.md` existe. Se nao, peca ao usuario para criar via `/nova-tarefa`.
-2. Verifique se existe `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/`. Crie se necessário.
+2. Verifique se existe `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/`. Crie se necessário.
 3. Defina `TASK_ID=TASK-XXX` como variável da sessao.
 4. Emita evento de início:
 
 ```bash
-~/dsg/agent-itau/scripts/emit-event.sh spawning orquestrador "$TASK_ID" "Iniciando tarefa"
+$CLAUDE_PROJECT_DIR/scripts/emit-event.sh spawning orquestrador "$TASK_ID" "Iniciando tarefa"
 ```
 
-5. Leia `~/dsg/agent-itau/CLAUDE.md` para garantir que tem as regras carregadas.
+5. Leia `$CLAUDE_PROJECT_DIR/CLAUDE.md` para garantir que tem as regras carregadas.
 
 #### FASE 1 — Analise (você, como Orquestrador)
 
-Leia `~/dsg/agent-itau/.claude/agents/orquestrador.md` e siga a FASE 1 dele:
+Leia `$CLAUDE_PROJECT_DIR/.claude/agents/orquestrador.md` e siga a FASE 1 dele:
 
 1. Ler `tarefas/TASK-XXX.md`
 2. Classificar (tipo / complexidade / risco)
@@ -64,7 +64,7 @@ Leia `~/dsg/agent-itau/.claude/agents/orquestrador.md` e siga a FASE 1 dele:
 4. Decidir número de devs (1 a 5)
 5. **Apresentar plano ao usuario e aguardar aprovacao**
 
-Salve o plano em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/plano.md`.
+Salve o plano em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/plano.md`.
 
 #### FASE 2 — Desenvolvimento
 
@@ -73,11 +73,11 @@ Após aprovacao, acione o Dev Tech Lead:
 ```
 Agent(
   description: "[dev-tech-lead] $TASK_ID — coordenar implementação",
-  prompt: "Leia ~/dsg/agent-itau/.claude/agents/dev-tech-lead.md e execute.
+  prompt: "Leia $CLAUDE_PROJECT_DIR/.claude/agents/dev-tech-lead.md e execute.
            TASK_ID: $TASK_ID
            Número de devs: $N
            Projetos afetados: $PROJ
-           Plano: ver ~/dsg/agent-itau/.workflow/tasks/$TASK_ID/plano.md
+           Plano: ver $CLAUDE_PROJECT_DIR/.workflow/tasks/$TASK_ID/plano.md
            Tarefa original: ver tarefas/$TASK_ID.md
            Salve seu sumário em .workflow/tasks/$TASK_ID/dev-summary.md",
   model: opus
@@ -91,7 +91,7 @@ Após retorno, leia `.workflow/tasks/$TASK_ID/dev-summary.md`. Se houver bloquei
 ```
 Agent(
   description: "[teste-tech-lead] $TASK_ID — esteira de testes",
-  prompt: "Leia ~/dsg/agent-itau/.claude/agents/teste-tech-lead.md e execute.
+  prompt: "Leia $CLAUDE_PROJECT_DIR/.claude/agents/teste-tech-lead.md e execute.
            TASK_ID: $TASK_ID
            Arquivos modificados: ver .workflow/tasks/$TASK_ID/files-changed.txt
            Tipo da tarefa: $TIPO
@@ -110,7 +110,7 @@ Após retorno, leia o summary. Se houver FAIL bloqueante:
 ```
 Agent(
   description: "[doc-especialista] $TASK_ID — gerar relatório PDF",
-  prompt: "Leia ~/dsg/agent-itau/.claude/agents/doc-especialista.md e execute.
+  prompt: "Leia $CLAUDE_PROJECT_DIR/.claude/agents/doc-especialista.md e execute.
            TASK_ID: $TASK_ID
            Compile todos os artefatos em .workflow/tasks/$TASK_ID/ e gere o PDF em relatorios/$TASK_ID.pdf",
   model: opus
@@ -122,7 +122,7 @@ Agent(
 1. Verifique que `relatorios/$TASK_ID.pdf` existe
 2. Emita evento de conclusão:
 ```bash
-~/dsg/agent-itau/scripts/emit-event.sh stopped orquestrador "$TASK_ID" success "Pipeline concluído"
+$CLAUDE_PROJECT_DIR/scripts/emit-event.sh stopped orquestrador "$TASK_ID" success "Pipeline concluído"
 ```
 3. Apresente ao usuario:
 

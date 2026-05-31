@@ -23,7 +23,7 @@ Se o usuario passou um titulo:
 
 1. **Descobrir o próximo TASK-ID**:
    ```bash
-   ls ~/dsg/agent-itau/tarefas/ | grep -E "^TASK-[0-9]+\.md$" | sed 's/TASK-\([0-9]*\)\.md/\1/' | sort -n | tail -1
+   ls $CLAUDE_PROJECT_DIR/tarefas/ | grep -E "^TASK-[0-9]+\.md$" | sed 's/TASK-\([0-9]*\)\.md/\1/' | sort -n | tail -1
    ```
    Some 1 ao maior número encontrado. Se nao houver tarefas, comece em `001`. Formato com 3 digitos (`TASK-001`, `TASK-002`, ...).
 
@@ -90,6 +90,6 @@ Pergunte ao usuario o titulo curto. Em seguida siga o Modo 1.
 
 1. Sempre usar **3 digitos** no ID (`TASK-001`, nao `TASK-1`).
 2. **Nao sobrescrever** tarefas existentes. Se já existe `TASK-XXX.md`, peca outro nome.
-3. Use `~/dsg/agent-itau/tarefas/` como diretório.
+3. Use `$CLAUDE_PROJECT_DIR/tarefas/` como diretório.
 4. Frontmatter sempre presente, mesmo com campos vazios marcados como `null` ou `""`.
 5. Use AskUserQuestion para coletar os dados — nao invente.

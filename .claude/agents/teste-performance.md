@@ -17,7 +17,7 @@ Você **nao corrige** nada — apenas reporta.
 
 - Acionado pelo `teste-tech-lead` apenas quando relevante
 - Lista de arquivos modificados em `files-changed.txt`
-- Resultado em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/performance.md`
+- Resultado em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/performance.md`
 
 ## Frentes de analise
 

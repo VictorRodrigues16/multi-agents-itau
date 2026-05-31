@@ -20,8 +20,8 @@ Você e responsável por garantir que o codigo modificado tenha cobertura de tes
 - Acionado pelo `teste-tech-lead`
 - Lista de arquivos modificados em `files-changed.txt`
 - Tipo da tarefa informado no prompt (feature, bug-fix, refactor, etc..)
-- Regras: `~/dsg/agent-itau/.claude/rules/testes.md`
-- Resultado em `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/cobertura.md`
+- Regras: `$CLAUDE_PROJECT_DIR/.claude/rules/testes.md`
+- Resultado em `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/cobertura.md`
 
 ## Cobertura mínima por tipo de codigo
 
@@ -150,7 +150,7 @@ Bonus (max +10):
 
 ## Formato de saída
 
-`~/dsg/agent-itau/.workflow/tasks/TASK-XXX/testes/cobertura.md`:
+`$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/testes/cobertura.md`:
 
 ```markdown
 # Cobertura de Testes — TASK-XXX

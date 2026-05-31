@@ -22,7 +22,7 @@ Aciona apenas o agente `doc-especialista` para gerar (ou re-gerar) o PDF de uma 
 ## Instrucoes para o Claude
 
 1. **Validar pré-requisitos**:
-   - Verificar que `~/dsg/agent-itau/.workflow/tasks/TASK-XXX/` existe
+   - Verificar que `$CLAUDE_PROJECT_DIR/.workflow/tasks/TASK-XXX/` existe
    - Verificar que pelo menos `dev-summary.md` ou `testes/summary.md` existe
    - Se nao houver artefatos suficientes, avisar o usuario
 
@@ -30,17 +30,17 @@ Aciona apenas o agente `doc-especialista` para gerar (ou re-gerar) o PDF de uma 
    ```bash
    node -e "require('puppeteer'); console.log('ok')" 2>&1
    ```
-   Se falhar, sugira `bash ~/dsg/agent-itau/scripts/init.sh`.
+   Se falhar, sugira `bash $CLAUDE_PROJECT_DIR/scripts/init.sh`.
 
 3. **Acionar o agente**:
 
 ```
 Agent(
   description: "[doc-especialista] $TASK_ID — gerar PDF",
-  prompt: "Leia ~/dsg/agent-itau/.claude/agents/doc-especialista.md.
+  prompt: "Leia $CLAUDE_PROJECT_DIR/.claude/agents/doc-especialista.md.
            TASK_ID: $TASK_ID
-           Compile os artefatos de ~/dsg/agent-itau/.workflow/tasks/$TASK_ID/
-           e gere o PDF em ~/dsg/agent-itau/relatorios/$TASK_ID.pdf.
+           Compile os artefatos de $CLAUDE_PROJECT_DIR/.workflow/tasks/$TASK_ID/
+           e gere o PDF em $CLAUDE_PROJECT_DIR/relatorios/$TASK_ID.pdf.
            Se algum artefato faltar, registre na secao correspondente como 'nao disponível'.",
   model: opus
 )
@@ -48,7 +48,7 @@ Agent(
 
 4. **Validar saída**:
    ```bash
-   ls -lh ~/dsg/agent-itau/relatorios/$TASK_ID.pdf
+   ls -lh $CLAUDE_PROJECT_DIR/relatorios/$TASK_ID.pdf
    ```
 
 5. **Apresentar ao usuario**:
