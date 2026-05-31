@@ -58,7 +58,18 @@ export function DiffViewer({
       const res = await fetch(url, { cache: 'no-store' })
       if (!res.ok) return
       const json: DiffResponse = await res.json()
-      setData(json)
+      // Evita re-render do diff a cada poll quando nada mudou (custoso em diffs grandes)
+      setData((prev) =>
+        prev &&
+        prev.diff === json.diff &&
+        prev.cwd === json.cwd &&
+        prev.conectado === json.conectado &&
+        prev.files.length === json.files.length
+          ? prev
+          : json,
+      )
+    } catch {
+      // erro de rede ou JSON invalido: mantem o estado anterior, nao quebra a UI
     } finally {
       setLoading(false)
     }
@@ -386,8 +397,15 @@ function FileItem({
   )
 }
 
+const MAX_LINHAS_DIFF = 1500
+
 function DiffRender({ diff }: { diff: string }) {
   const linhas = useMemo(() => diff.split('\n'), [diff])
+  const truncado = linhas.length > MAX_LINHAS_DIFF
+  const visiveis = useMemo(
+    () => (truncado ? linhas.slice(0, MAX_LINHAS_DIFF) : linhas),
+    [linhas, truncado],
+  )
 
   return (
     <pre
@@ -399,9 +417,30 @@ function DiffRender({ diff }: { diff: string }) {
         whiteSpace: 'pre',
       }}
     >
-      {linhas.map((linha, idx) => (
+      {visiveis.map((linha, idx) => (
         <LinhaDiff key={idx} linha={linha} />
       ))}
+      {truncado && (
+        <div
+          style={{
+            margin: '12px 16px',
+            padding: '12px 16px',
+            background: '#FFF4C2',
+            border: '1px solid #F8C300',
+            borderRadius: '8px',
+            color: '#A07700',
+            fontSize: '12px',
+            fontWeight: 600,
+            lineHeight: 1.5,
+            whiteSpace: 'normal',
+            fontFamily: 'system-ui, sans-serif',
+          }}
+        >
+          Diff muito grande — mostrando as primeiras{' '}
+          {MAX_LINHAS_DIFF.toLocaleString('pt-BR')} de {linhas.length.toLocaleString('pt-BR')}{' '}
+          linhas. Selecione um arquivo na lista à esquerda para ver o diff completo dele.
+        </div>
+      )}
     </pre>
   )
 }
